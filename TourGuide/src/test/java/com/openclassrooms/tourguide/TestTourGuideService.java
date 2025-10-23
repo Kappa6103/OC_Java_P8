@@ -122,7 +122,7 @@ public class TestTourGuideService {
 
 		tourGuideService.tracker.stopTracking();
 
-		assertEquals(10, providers.size());
+		assertEquals(10, providers.size()); //TODO : NOT POSSIBLE, FOR LOOP IS 5 IN THE LIB
 	}
 
 }

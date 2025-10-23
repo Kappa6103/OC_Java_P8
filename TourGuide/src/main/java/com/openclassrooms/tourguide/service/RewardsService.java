@@ -1,5 +1,6 @@
 package com.openclassrooms.tourguide.service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -36,17 +37,28 @@ public class RewardsService {
 		proximityBuffer = defaultProximityBuffer;
 	}
 	
-	public void calculateRewards(User user) {
-		List<VisitedLocation> userLocations = user.getVisitedLocations();
-		List<Attraction> attractions = gpsUtil.getAttractions();
-		
-		for(VisitedLocation visitedLocation : userLocations) {
-			for(Attraction attraction : attractions) {
-				if(user.getUserRewards().stream().filter(r -> r.attraction.attractionName.equals(attraction.attractionName)).count() == 0) {
-					if(nearAttraction(visitedLocation, attraction)) {
-						user.addUserReward(new UserReward(visitedLocation, attraction, getRewardPoints(attraction, user)));
+	public synchronized void calculateRewards(User user) {
+		if (user == null) {
+			throw new NullPointerException();
+		} else {
+			List<VisitedLocation> userLocations = List.copyOf(user.getVisitedLocations());
+			List<Attraction> attractions = List.copyOf(gpsUtil.getAttractions());
+
+			List<UserReward> existingUserRewards = List.copyOf(user.getUserRewards());
+			List<UserReward> userRewardsToAdd = new ArrayList<>();
+
+			for(VisitedLocation visitedLocation : userLocations) {
+				for(Attraction attraction : attractions) {
+					if(existingUserRewards.stream().filter(r -> r.attraction.attractionName.equals(attraction.attractionName)).count() == 0) {
+						if(nearAttraction(visitedLocation, attraction)) {
+							userRewardsToAdd.add(new UserReward(visitedLocation, attraction, getRewardPoints(attraction, user)));
+						}
 					}
 				}
+			}
+
+			if (!userRewardsToAdd.isEmpty()) {
+				userRewardsToAdd.forEach(user::addUserReward);
 			}
 		}
 	}

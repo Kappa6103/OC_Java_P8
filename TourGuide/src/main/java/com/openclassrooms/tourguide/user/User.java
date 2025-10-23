@@ -69,12 +69,24 @@ public class User {
 		visitedLocations.clear();
 	}
 	
+//	public void addUserReward(UserReward userReward) {
+//		if(userRewards.stream()
+//				.filter(r -> !r.attraction.attractionName.equals(userReward.attraction))
+//				.count() == 0) {
+//			userRewards.add(userReward);
+//		}
+//	}
+
 	public void addUserReward(UserReward userReward) {
-		if(userRewards.stream().filter(r -> !r.attraction.attractionName.equals(userReward.attraction)).count() == 0) {
+		boolean isNewAttraction = userRewards.stream()
+				.noneMatch(existing -> existing.attraction.attractionName
+						.equals(userReward.attraction.attractionName));
+
+		if (isNewAttraction) {
 			userRewards.add(userReward);
 		}
 	}
-	
+
 	public List<UserReward> getUserRewards() {
 		return userRewards;
 	}
