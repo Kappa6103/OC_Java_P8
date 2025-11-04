@@ -1,5 +1,7 @@
 package com.openclassrooms.tourguide.service;
 
+import com.openclassrooms.tourguide.dto.AttractionDetails;
+import com.openclassrooms.tourguide.dto.FiveClosestAttractions;
 import com.openclassrooms.tourguide.helper.InternalTestHelper;
 import com.openclassrooms.tourguide.tracker.Tracker;
 import com.openclassrooms.tourguide.user.User;
@@ -7,14 +9,7 @@ import com.openclassrooms.tourguide.user.UserReward;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Random;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -60,7 +55,7 @@ public class TourGuideService {
 	}
 
 	public VisitedLocation getUserLocation(User user) {
-		VisitedLocation visitedLocation = (user.getVisitedLocations().size() > 0) ? user.getLastVisitedLocation()
+		VisitedLocation visitedLocation = (!user.getVisitedLocations().isEmpty()) ? user.getLastVisitedLocation()
 				: trackUserLocation(user);
 		return visitedLocation;
 	}
@@ -95,15 +90,63 @@ public class TourGuideService {
 		return visitedLocation;
 	}
 
-	public List<Attraction> getNearByAttractions(VisitedLocation visitedLocation) {
-		List<Attraction> nearbyAttractions = new ArrayList<>();
+	public List<Attraction> getNearByAttractionsWithinSetProximity(VisitedLocation visitedLocation) {
+		List<Attraction> nearbyAttractionsWithinSetProximity = new ArrayList<>();
 		for (Attraction attraction : gpsUtil.getAttractions()) {
 			if (rewardsService.isWithinAttractionProximity(attraction, visitedLocation.location)) {
-				nearbyAttractions.add(attraction);
+				nearbyAttractionsWithinSetProximity.add(attraction);
 			}
 		}
 
-		return nearbyAttractions;
+		return nearbyAttractionsWithinSetProximity;
+	}
+
+
+	// Instead: Get the closest five tourist attractions to the user - no matter how far away they are.
+
+	// Return a new JSON object that contains:
+	// The user's location lat/long,
+
+	// Name of Tourist attraction,
+	// Tourist attractions lat/long,
+
+	// The distance in miles between the user's location and each of the attractions.
+	// The reward points for visiting each Attraction.
+	// Note: Attraction reward points can be gathered from RewardsCentral
+	public FiveClosestAttractions getFiveClosestAttractions(VisitedLocation visitedLocation, User user) {
+		//Getting the list of all existing Attractions
+		List<Attraction> attractions = List.copyOf(gpsUtil.getAttractions());
+
+		//Instantiating a TreeMap to auto-order the input
+		Map<Double, Attraction> distanceTree = new TreeMap<>();
+
+		//Adding each attraction into the TreeMap and calculating their distance with the arg
+		for (Attraction attraction : attractions) {
+			Location location = new Location(attraction.latitude, attraction.longitude);
+			distanceTree.put(rewardsService.getDistance(visitedLocation.location, location), attraction);
+		}
+
+
+		AttractionDetails[] attractionDetails = new AttractionDetails[5];
+		var count = 0;
+		for (Map.Entry<Double, Attraction> entry : distanceTree.entrySet()) {
+			if (count < 5) {
+				Attraction attraction = entry.getValue();
+				attractionDetails[count] = new AttractionDetails(
+						attraction.attractionName,
+						String.format("Lat: %.02f Long: %.02f", attraction.latitude, attraction.longitude),
+						String.format("%.02f", entry.getKey()),
+						rewardsService.getRewardPoints(attraction,user)
+				);
+				count++;
+			} else {
+				break;
+			}
+		}
+		return new FiveClosestAttractions(
+				String.format("Lat: %.02f Long: %.02f", visitedLocation.location.latitude, visitedLocation.location.longitude),
+				attractionDetails
+		);
 	}
 
 	private void addShutDownHook() {
