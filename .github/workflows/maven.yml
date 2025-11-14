@@ -28,4 +28,13 @@ jobs:
         distribution: 'temurin'
         cache: maven
     - name: Build with Maven
-      run: mvn -B package --file pom.xml
+      run: |
+        if [ -f "pom.xml" ]; then
+          echo "pom.xml exists in current directory"
+          mvn -B package
+        else
+          echo "pom.xml not found in current directory"
+          echo "Files in current directory:"
+          ls -la
+        fi
+
