@@ -12,12 +12,4 @@ public class TourguideApplication {
 		SpringApplication.run(TourguideApplication.class, args);
 	}
 
-
-//	@Bean
-//	TomcatProtocolHandlerCustomizer<?> protocolHandlerVirtualThreadExecutorCustomizer() {
-//		return protocolHandler -> {
-//			protocolHandler.setExecutor(Executors.newVirtualThreadPerTaskExecutor());
-//		};
-//	}
-
 }
