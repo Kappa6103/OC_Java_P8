@@ -111,7 +111,7 @@ public class TestTourGuideService {
 	}
 
 	@Disabled
-	@Test //TODO : VOIR AVEC YANNICK
+	@Test
 	public void getTripDeals() {
 		GpsUtil gpsUtil = new GpsUtil();
 		RewardsService rewardsService = new RewardsService(gpsUtil, new RewardCentral());
