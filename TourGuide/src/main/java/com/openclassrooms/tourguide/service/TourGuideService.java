@@ -10,6 +10,7 @@ import com.openclassrooms.tourguide.user.UserReward;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.*;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -28,16 +29,18 @@ import tripPricer.TripPricer;
 @Service
 public class TourGuideService {
 	private Logger logger = LoggerFactory.getLogger(TourGuideService.class);
-	private final GpsUtil gpsUtil;
 	private final RewardsService rewardsService;
 	private final TripPricer tripPricer = new TripPricer();
 	public final Tracker tracker;
 	boolean testMode = true;
+	private final GpsUtil gpsUtil;
+
+	private final ExecutorService executor = Executors.newFixedThreadPool(320); //TODO : should it be a bean ?
 
 	public TourGuideService(GpsUtil gpsUtil, RewardsService rewardsService) {
 		this.gpsUtil = gpsUtil;
 		this.rewardsService = rewardsService;
-		
+
 		Locale.setDefault(Locale.US);
 
 		if (testMode) {
@@ -54,9 +57,9 @@ public class TourGuideService {
 		return user.getUserRewards();
 	}
 
-	public VisitedLocation getUserLocation(User user) {
+	public VisitedLocation getUserLocation(User user) throws ExecutionException, InterruptedException {
 		VisitedLocation visitedLocation = (!user.getVisitedLocations().isEmpty()) ? user.getLastVisitedLocation()
-				: trackUserLocation(user);
+				: trackUserLocation(user).get();
 		return visitedLocation;
 	}
 
@@ -83,23 +86,78 @@ public class TourGuideService {
 		return providers;
 	}
 
-	public VisitedLocation trackUserLocation(User user) {
-		VisitedLocation visitedLocation = gpsUtil.getUserLocation(user.getUserId());
-		user.addToVisitedLocations(visitedLocation);
-		rewardsService.calculateRewards(user);
-		return visitedLocation;
+	public Future<Integer> exemple1() {
+
+		Future<Integer> future1 = executor.submit(() -> {
+			TimeUnit.SECONDS.sleep(5);
+			return 700000;
+		});
+		return future1;
 	}
 
-	public List<Attraction> getNearByAttractionsWithinSetProximity(VisitedLocation visitedLocation) {
-		List<Attraction> nearbyAttractionsWithinSetProximity = new ArrayList<>();
-		for (Attraction attraction : gpsUtil.getAttractions()) {
-			if (rewardsService.isWithinAttractionProximity(attraction, visitedLocation.location)) {
-				nearbyAttractionsWithinSetProximity.add(attraction);
-			}
+	public Future<Integer> exemple2() {
+
+		CompletableFuture<Integer> future2 = CompletableFuture.supplyAsync(() -> {
+            try {
+                TimeUnit.SECONDS.sleep(5);
+				return 7000;
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+
+		}, executor);
+
+		return future2;
+	}
+
+
+	public CompletableFuture<VisitedLocation> trackUserLocation(User user) {
+
+		CompletableFuture<VisitedLocation> future = CompletableFuture.supplyAsync(
+				() -> gpsUtil.getUserLocation(user.getUserId()), executor);
+
+		future.thenAccept(location -> {
+			user.addToVisitedLocations(location);
+			CompletableFuture.runAsync(() -> rewardsService.calculateRewards(user), executor);
+		});
+		return future;
+	}
+
+	int count = 0;
+	public Map<User, VisitedLocation> trackUserLocation(List<User> userList) {
+		List<VisitedLocationMultiThread> threadPool = new ArrayList<>(userList.size());
+		Map<User, VisitedLocation> userVisitedLocationMap = new HashMap<>(userList.size());
+
+		for (User user : userList) {
+			VisitedLocationMultiThread visitedLocationMultiThread = new VisitedLocationMultiThread(user);
+			visitedLocationMultiThread.start();
+			threadPool.add(visitedLocationMultiThread);
+			count++;
 		}
+		System.out.println(count);
+		for (VisitedLocationMultiThread th : threadPool) {
+            try {
+                th.join();
+				userVisitedLocationMap.put(th.getUser(), th.getVisitedLocation());
+            } catch (InterruptedException e) {
+				System.out.println("error when joining threads");
+				e.printStackTrace();
+            }
+        }
 
-		return nearbyAttractionsWithinSetProximity;
+        return userVisitedLocationMap;
 	}
+
+//	public List<Attraction> getNearByAttractionsWithinSetProximity(VisitedLocation visitedLocation) {
+//		List<Attraction> nearbyAttractionsWithinSetProximity = new ArrayList<>();
+//		for (Attraction attraction : gpsUtil.getAttractions()) {
+//			if (rewardsService.isWithinAttractionProximity(attraction, visitedLocation.location)) {
+//				nearbyAttractionsWithinSetProximity.add(attraction);
+//			}
+//		}
+//
+//		return nearbyAttractionsWithinSetProximity;
+//	}
 
 
 	// Instead: Get the closest five tourist attractions to the user - no matter how far away they are.
@@ -153,8 +211,32 @@ public class TourGuideService {
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 			public void run() {
 				tracker.stopTracking();
+				shutdownExecutorService();
 			}
 		});
+	}
+
+	public void shutdownExecutorService() {
+		executor.shutdown();
+
+		try {
+			// Wait 10 seconds for the tasks to terminate
+			if (!executor.awaitTermination(10, TimeUnit.SECONDS)) {
+				// Cancel currently executing tasks
+				executor.shutdownNow();
+
+				// Wait 60 seconds for tasks to respond
+				if (!executor.awaitTermination(60, TimeUnit.SECONDS)) {
+					System.err.println("Pool did not terminate");
+				}
+			}
+		} catch (InterruptedException ex) {
+			// Cancel if the current thread was interrupted
+			executor.shutdownNow();
+			// Preserve the interrupt status
+			Thread.currentThread().interrupt();
+		}
+
 	}
 
 	/**********************************************************************************

@@ -2,6 +2,8 @@ package com.openclassrooms.tourguide;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.web.embedded.tomcat.TomcatProtocolHandlerCustomizer;
+import org.springframework.context.annotation.Bean;
 
 @SpringBootApplication
 public class TourguideApplication {
@@ -9,5 +11,13 @@ public class TourguideApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(TourguideApplication.class, args);
 	}
+
+
+//	@Bean
+//	TomcatProtocolHandlerCustomizer<?> protocolHandlerVirtualThreadExecutorCustomizer() {
+//		return protocolHandler -> {
+//			protocolHandler.setExecutor(Executors.newVirtualThreadPerTaskExecutor());
+//		};
+//	}
 
 }

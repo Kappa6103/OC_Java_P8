@@ -2,6 +2,10 @@ package com.openclassrooms.tourguide.service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.stereotype.Service;
 
@@ -23,10 +27,11 @@ public class RewardsService {
 	private int attractionProximityRange = 200;
 	private final GpsUtil gpsUtil;
 	private final RewardCentral rewardsCentral;
+	private final ExecutorService executor = Executors.newFixedThreadPool(320);
 	
 	public RewardsService(GpsUtil gpsUtil, RewardCentral rewardCentral) {
-		this.gpsUtil = gpsUtil;
 		this.rewardsCentral = rewardCentral;
+		this.gpsUtil = gpsUtil;
 	}
 	
 	public void setProximityBuffer(int proximityBuffer) {
@@ -36,11 +41,13 @@ public class RewardsService {
 	public void setDefaultProximityBuffer() {
 		proximityBuffer = defaultProximityBuffer;
 	}
-	
-	public synchronized void calculateRewards(User user) {
+
+	public CompletableFuture<Void> calculateRewards(User user) {
 		if (user == null) {
-			throw new NullPointerException();
-		} else {
+			throw new NullPointerException("user cannot be null");
+		}
+
+		return CompletableFuture.runAsync(() -> {
 			List<VisitedLocation> userLocations = List.copyOf(user.getVisitedLocations());
 			List<Attraction> attractions = List.copyOf(gpsUtil.getAttractions());
 
@@ -60,7 +67,7 @@ public class RewardsService {
 			if (!userRewardsToAdd.isEmpty()) {
 				userRewardsToAdd.forEach(user::addUserReward);
 			}
-		}
+		}, executor);
 	}
 	
 	public boolean isWithinAttractionProximity(Attraction attraction, Location location) {
@@ -74,6 +81,11 @@ public class RewardsService {
 	public int getRewardPoints(Attraction attraction, User user) {
 		return rewardsCentral.getAttractionRewardPoints(attraction.attractionId, user.getUserId());
 	}
+//
+//	public CompletableFuture<Integer> getRewardPoints(Attraction attraction, User user) {
+//		return CompletableFuture.supplyAsync(() -> rewardsCentral
+//				.getAttractionRewardPoints(attraction.attractionId, user.getUserId()), executor);
+//	}
 	
 	public double getDistance(Location loc1, Location loc2) {
         double lat1 = Math.toRadians(loc1.latitude);
@@ -87,6 +99,29 @@ public class RewardsService {
         double nauticalMiles = 60 * Math.toDegrees(angle);
         double statuteMiles = STATUTE_MILES_PER_NAUTICAL_MILE * nauticalMiles;
         return statuteMiles;
+	}
+
+	public void shutdownExecutorService() {
+		executor.shutdown();
+
+		try {
+			// Wait 10 seconds for the tasks to terminate
+			if (!executor.awaitTermination(10, TimeUnit.SECONDS)) {
+				// Cancel currently executing tasks
+				executor.shutdownNow();
+
+				// Wait 60 seconds for tasks to respond
+				if (!executor.awaitTermination(60, TimeUnit.SECONDS)) {
+					System.err.println("Pool did not terminate");
+				}
+			}
+		} catch (InterruptedException ex) {
+			// Cancel if the current thread was interrupted
+			executor.shutdownNow();
+			// Preserve the interrupt status
+			Thread.currentThread().interrupt();
+		}
+
 	}
 
 }
