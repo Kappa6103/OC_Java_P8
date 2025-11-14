@@ -29,12 +29,5 @@ jobs:
         cache: maven
     - name: Build with Maven
       run: |
-        if [ -f "pom.xml" ]; then
-          echo "pom.xml exists in current directory"
-          mvn -B package
-        else
-          echo "pom.xml not found in current directory"
-          echo "Files in current directory:"
-          ls -la
-        fi
-
+        cd TourGuide
+        mvn -B package
