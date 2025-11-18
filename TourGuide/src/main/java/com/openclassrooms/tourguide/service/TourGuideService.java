@@ -86,31 +86,6 @@ public class TourGuideService {
 		return providers;
 	}
 
-	public Future<Integer> exemple1() {
-
-		Future<Integer> future1 = executor.submit(() -> {
-			TimeUnit.SECONDS.sleep(5);
-			return 700000;
-		});
-		return future1;
-	}
-
-	public Future<Integer> exemple2() {
-
-		CompletableFuture<Integer> future2 = CompletableFuture.supplyAsync(() -> {
-            try {
-                TimeUnit.SECONDS.sleep(5);
-				return 7000;
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-
-		}, executor);
-
-		return future2;
-	}
-
-
 	public CompletableFuture<VisitedLocation> trackUserLocation(User user) {
 
 		CompletableFuture<VisitedLocation> future = CompletableFuture.supplyAsync(
@@ -123,54 +98,6 @@ public class TourGuideService {
 		return future;
 	}
 
-	int count = 0;
-	public Map<User, VisitedLocation> trackUserLocation(List<User> userList) {
-		List<VisitedLocationMultiThread> threadPool = new ArrayList<>(userList.size());
-		Map<User, VisitedLocation> userVisitedLocationMap = new HashMap<>(userList.size());
-
-		for (User user : userList) {
-			VisitedLocationMultiThread visitedLocationMultiThread = new VisitedLocationMultiThread(user);
-			visitedLocationMultiThread.start();
-			threadPool.add(visitedLocationMultiThread);
-			count++;
-		}
-		System.out.println(count);
-		for (VisitedLocationMultiThread th : threadPool) {
-            try {
-                th.join();
-				userVisitedLocationMap.put(th.getUser(), th.getVisitedLocation());
-            } catch (InterruptedException e) {
-				System.out.println("error when joining threads");
-				e.printStackTrace();
-            }
-        }
-
-        return userVisitedLocationMap;
-	}
-
-//	public List<Attraction> getNearByAttractionsWithinSetProximity(VisitedLocation visitedLocation) {
-//		List<Attraction> nearbyAttractionsWithinSetProximity = new ArrayList<>();
-//		for (Attraction attraction : gpsUtil.getAttractions()) {
-//			if (rewardsService.isWithinAttractionProximity(attraction, visitedLocation.location)) {
-//				nearbyAttractionsWithinSetProximity.add(attraction);
-//			}
-//		}
-//
-//		return nearbyAttractionsWithinSetProximity;
-//	}
-
-
-	// Instead: Get the closest five tourist attractions to the user - no matter how far away they are.
-
-	// Return a new JSON object that contains:
-	// The user's location lat/long,
-
-	// Name of Tourist attraction,
-	// Tourist attractions lat/long,
-
-	// The distance in miles between the user's location and each of the attractions.
-	// The reward points for visiting each Attraction.
-	// Note: Attraction reward points can be gathered from RewardsCentral
 	public FiveClosestAttractions getFiveClosestAttractions(VisitedLocation visitedLocation, User user) {
 		//Getting the list of all existing Attractions
 		List<Attraction> attractions = List.copyOf(gpsUtil.getAttractions());
@@ -183,7 +110,6 @@ public class TourGuideService {
 			Location location = new Location(attraction.latitude, attraction.longitude);
 			distanceTree.put(rewardsService.getDistance(visitedLocation.location, location), attraction);
 		}
-
 
 		AttractionDetails[] attractionDetails = new AttractionDetails[5];
 		var count = 0;
