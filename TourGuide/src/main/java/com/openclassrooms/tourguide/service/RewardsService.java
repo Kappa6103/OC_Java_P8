@@ -81,11 +81,6 @@ public class RewardsService {
 	public int getRewardPoints(Attraction attraction, User user) {
 		return rewardsCentral.getAttractionRewardPoints(attraction.attractionId, user.getUserId());
 	}
-//
-//	public CompletableFuture<Integer> getRewardPoints(Attraction attraction, User user) {
-//		return CompletableFuture.supplyAsync(() -> rewardsCentral
-//				.getAttractionRewardPoints(attraction.attractionId, user.getUserId()), executor);
-//	}
 	
 	public double getDistance(Location loc1, Location loc2) {
         double lat1 = Math.toRadians(loc1.latitude);

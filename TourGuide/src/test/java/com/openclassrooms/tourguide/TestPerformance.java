@@ -3,11 +3,9 @@ package com.openclassrooms.tourguide;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang3.time.StopWatch;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import gpsUtil.GpsUtil;
@@ -45,18 +43,9 @@ public class TestPerformance {
 	 * assertTrue(TimeUnit.MINUTES.toSeconds(20) >=
 	 * TimeUnit.MILLISECONDS.toSeconds(stopWatch.getTime()));
 	 */
-/*
-with my own class 50_000 in 6 min 27 avec result in hasmap same for not casting
-with the executor, but re-make one exe per thread, poua ! 12min7
-3min42 -> with fixed size of 30 threads, pareil avec un wait in main threads
-2 min 56 -> with a cached thread pools/ et sans la synchro 2m37;
 
-for 100_000 -> 9 mins
-sans le synchro
-for 100_000 ->
- */
 	@Test
-	public void highVolumeTrackLocation() throws ExecutionException, InterruptedException {
+	public void highVolumeTrackLocation() {
 		GpsUtil gpsUtil = new GpsUtil();
 		RewardsService rewardsService = new RewardsService(gpsUtil, new RewardCentral());
 		// Users should be incremented up to 100,000, and test finishes within 15
@@ -65,8 +54,7 @@ for 100_000 ->
 		InternalTestHelper.setInternalUserNumber(NUM_OF_USERS);
 		TourGuideService tourGuideService = new TourGuideService(gpsUtil, rewardsService);
 
-		List<User> allUsers = new ArrayList<>();
-		allUsers = tourGuideService.getAllUsers();
+		List<User> allUsers = tourGuideService.getAllUsers();
 		Map<User, CompletableFuture<VisitedLocation>> addedLocation = new HashMap<>(NUM_OF_USERS);
 
 		StopWatch stopWatch = new StopWatch();
@@ -77,9 +65,9 @@ for 100_000 ->
 		}
 		System.out.println("Step one done, all futures put in the hashmap");
 
-		addedLocation.forEach((user, location) -> {
-			assertTrue(user.getVisitedLocations().contains(location.join()));
-		});
+		addedLocation.forEach((user, location) ->
+				assertTrue(user.getVisitedLocations().contains(location.join())));
+
 		assertEquals(NUM_OF_USERS, addedLocation.values().size());
 		stopWatch.stop();
 		tourGuideService.tracker.stopTracking();
@@ -90,10 +78,6 @@ for 100_000 ->
 		assertTrue(TimeUnit.MINUTES.toSeconds(15) >= TimeUnit.MILLISECONDS.toSeconds(stopWatch.getTime()));
 	}
 
-	/* 3m36
-	3m52 pour 100_000
-	l'etat n'est pas a verifier ?
-	 */
 	@Test
 	public void highVolumeGetRewards() {
 		GpsUtil gpsUtil = new GpsUtil();
@@ -107,11 +91,9 @@ for 100_000 ->
 		TourGuideService tourGuideService = new TourGuideService(gpsUtil, rewardsService);
 
 		Attraction attraction = gpsUtil.getAttractions().get(0);
-		List<User> allUsers = new ArrayList<>();
-		allUsers = tourGuideService.getAllUsers();
-		allUsers.forEach(u -> u.addToVisitedLocations(new VisitedLocation(u.getUserId(), attraction, new Date())));
+		List<User> allUsers = tourGuideService.getAllUsers();
 
-		//allUsers.forEach(u -> rewardsService.calculateRewards(u));
+		allUsers.forEach(u -> u.addToVisitedLocations(new VisitedLocation(u.getUserId(), attraction, new Date())));
 
 		List<CompletableFuture<Void>> futures = allUsers.stream()
 				.map(u -> rewardsService.calculateRewards(u))
