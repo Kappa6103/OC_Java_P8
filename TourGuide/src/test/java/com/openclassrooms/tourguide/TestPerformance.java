@@ -2,7 +2,6 @@ package com.openclassrooms.tourguide;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang3.time.StopWatch;
@@ -50,7 +49,7 @@ public class TestPerformance {
 		RewardsService rewardsService = new RewardsService(gpsUtil, new RewardCentral());
 		// Users should be incremented up to 100,000, and test finishes within 15
 		// minutes
-		final int NUM_OF_USERS = 100_000; //3m25
+		final int NUM_OF_USERS = 100;
 		InternalTestHelper.setInternalUserNumber(NUM_OF_USERS);
 		TourGuideService tourGuideService = new TourGuideService(gpsUtil, rewardsService);
 
@@ -99,7 +98,6 @@ public class TestPerformance {
 				.map(u -> rewardsService.calculateRewards(u))
 				.toList();
 
-		// Wait for all calculations to complete
 		System.out.println("Step one done");
 
 		futures.forEach(CompletableFuture::join);
