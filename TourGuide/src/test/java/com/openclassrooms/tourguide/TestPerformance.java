@@ -1,18 +1,15 @@
 package com.openclassrooms.tourguide;
 
 import java.util.*;
-import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang3.time.StopWatch;
 import org.junit.jupiter.api.RepeatedTest;
-import org.junit.jupiter.api.Test;
 
 import gpsUtil.GpsUtil;
 import gpsUtil.location.Attraction;
 import gpsUtil.location.VisitedLocation;
-import org.springframework.test.annotation.Repeat;
 import rewardCentral.RewardCentral;
 import com.openclassrooms.tourguide.helper.InternalTestHelper;
 import com.openclassrooms.tourguide.service.RewardsService;
@@ -67,7 +64,7 @@ public class TestPerformance {
 		}
 		System.out.println("Step one done, all futures put in the hashmap");
 
-		addedLocation.forEach((user, addedsdfLocation) -> addedsdfLocation.join());
+		addedLocation.forEach((user, futureLocation) -> futureLocation.join());
 
 		System.out.println("compute done for the visited location");
 
