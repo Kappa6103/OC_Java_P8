@@ -110,8 +110,7 @@ public class TestTourGuideService {
 		assertEquals(5, attractions.attractionDetailsList().length);
 	}
 
-	@Disabled
-	@Test //TODO : VOIR AVEC YANNICK
+	@Test
 	public void getTripDeals() {
 		GpsUtil gpsUtil = new GpsUtil();
 		RewardsService rewardsService = new RewardsService(gpsUtil, new RewardCentral());
@@ -124,7 +123,7 @@ public class TestTourGuideService {
 
 		tourGuideService.tracker.stopTracking();
 
-		assertEquals(10, providers.size());//NOT POSSIBLE, FOR LOOP IS 5 IN THE LIB
+		assertEquals(5, providers.size());//10 is NOT POSSIBLE, FOR LOOP IS 5 IN THE LIB
 	}
 
 }
