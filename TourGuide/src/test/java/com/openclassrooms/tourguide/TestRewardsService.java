@@ -7,6 +7,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
+import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 
 import gpsUtil.GpsUtil;
@@ -50,8 +51,7 @@ public class TestRewardsService {
 	}
 
 
-	@Test
-	@Repeat(5)
+	@RepeatedTest(5)
 	public void nearAllAttractions() {
 		GpsUtil gpsUtil = new GpsUtil();
 		RewardsService rewardsService = new RewardsService(gpsUtil, new RewardCentral());

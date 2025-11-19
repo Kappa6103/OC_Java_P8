@@ -14,7 +14,7 @@ public class User {
 	private String phoneNumber;
 	private String emailAddress;
 	private Date latestLocationTimestamp;
-	private List<VisitedLocation> visitedLocations = new ArrayList<>();
+	private volatile List<VisitedLocation> visitedLocations = new ArrayList<>();
 	private volatile List<UserReward> userRewards = new ArrayList<>();
 	private UserPreferences userPreferences = new UserPreferences();
 	private List<Provider> tripDeals = new ArrayList<>();
@@ -68,14 +68,6 @@ public class User {
 	public void clearVisitedLocations() {
 		visitedLocations.clear();
 	}
-	
-//	public void addUserReward(UserReward userReward) {
-//		if(userRewards.stream()
-//				.filter(r -> !r.attraction.attractionName.equals(userReward.attraction))
-//				.count() == 0) {
-//			userRewards.add(userReward);
-//		}
-//	}
 
 	public synchronized void addUserReward(UserReward userReward) {
 		boolean isNewAttraction = userRewards.stream()
