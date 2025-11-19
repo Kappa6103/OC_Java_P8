@@ -9,6 +9,8 @@ import com.openclassrooms.tourguide.service.RewardsService;
 
 @Configuration
 public class TourGuideModule {
+
+	//testing github action
 	
 	@Bean
 	public GpsUtil getGpsUtil() {
