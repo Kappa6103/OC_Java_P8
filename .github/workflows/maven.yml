@@ -31,3 +31,15 @@ jobs:
       run: |
         cd TourGuide
         mvn -B package
+    - name: Prepare JAR artifacts
+      run: |
+        cd TourGuide
+        mkdir staging
+        cp target/*.jar staging
+    - name: Upload JAR artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: Package
+        path: TourGuide/staging
+
+
