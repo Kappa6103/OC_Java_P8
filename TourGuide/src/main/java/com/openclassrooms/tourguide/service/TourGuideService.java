@@ -35,7 +35,7 @@ public class TourGuideService {
 	boolean testMode = true;
 	private final GpsUtil gpsUtil;
 
-	private final ExecutorService executor = Executors.newFixedThreadPool(320); //TODO : should it be a bean ?
+	private final ExecutorService executor = Executors.newFixedThreadPool(320);
 
 	public TourGuideService(GpsUtil gpsUtil, RewardsService rewardsService) {
 		this.gpsUtil = gpsUtil;
@@ -111,7 +111,7 @@ public class TourGuideService {
 			distanceTree.put(rewardsService.getDistance(visitedLocation.location, location), attraction);
 		}
 
-		//Putting the ordered TreeMap entries into a ordered List
+		//Putting the ordered TreeMap entries into an ordered List
 		List<Map.Entry<Double, Attraction>> entryList = new ArrayList<>(distanceTree.entrySet());
 
 		AttractionDetails[] attractionDetails = new AttractionDetails[5];
@@ -120,13 +120,13 @@ public class TourGuideService {
 			Attraction attraction = entry.getValue();
 			attractionDetails[i] = new AttractionDetails(
 					attraction.attractionName,
-					String.format("Lat: %.02f Long: %.02f", attraction.latitude, attraction.longitude),
+					String.format("Lat: %f Long: %f", attraction.latitude, attraction.longitude),
 					String.format("%.02f", entry.getKey()),
 					rewardsService.getRewardPoints(attraction,user)
 			);
 		}
 		return new FiveClosestAttractions(
-				String.format("Lat: %.02f Long: %.02f", visitedLocation.location.latitude, visitedLocation.location.longitude),
+				String.format("Lat: %f Long: %f", visitedLocation.location.latitude, visitedLocation.location.longitude),
 				attractionDetails
 		);
 	}
