@@ -114,7 +114,7 @@ public class TourGuideService {
 		AttractionDetails[] attractionDetails = new AttractionDetails[5];
 		var count = 0;
 		for (Map.Entry<Double, Attraction> entry : distanceTree.entrySet()) {
-			if (count < 5) {
+			if (count < 5) { //TODO : A NE PAS FAIRE : FOR LOOP OU WHILE
 				Attraction attraction = entry.getValue();
 				attractionDetails[count] = new AttractionDetails(
 						attraction.attractionName,
