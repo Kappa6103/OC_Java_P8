@@ -111,21 +111,19 @@ public class TourGuideService {
 			distanceTree.put(rewardsService.getDistance(visitedLocation.location, location), attraction);
 		}
 
+		//Putting the ordered TreeMap entries into a ordered List
+		List<Map.Entry<Double, Attraction>> entryList = new ArrayList<>(distanceTree.entrySet());
+
 		AttractionDetails[] attractionDetails = new AttractionDetails[5];
-		var count = 0;
-		for (Map.Entry<Double, Attraction> entry : distanceTree.entrySet()) {
-			if (count < 5) { //TODO : A NE PAS FAIRE : FOR LOOP OU WHILE
-				Attraction attraction = entry.getValue();
-				attractionDetails[count] = new AttractionDetails(
-						attraction.attractionName,
-						String.format("Lat: %.02f Long: %.02f", attraction.latitude, attraction.longitude),
-						String.format("%.02f", entry.getKey()),
-						rewardsService.getRewardPoints(attraction,user)
-				);
-				count++;
-			} else {
-				break;
-			}
+		for (int i = 0; i < 5 && i < entryList.size(); i++) {
+			Map.Entry<Double, Attraction> entry = entryList.get(i);
+			Attraction attraction = entry.getValue();
+			attractionDetails[i] = new AttractionDetails(
+					attraction.attractionName,
+					String.format("Lat: %.02f Long: %.02f", attraction.latitude, attraction.longitude),
+					String.format("%.02f", entry.getKey()),
+					rewardsService.getRewardPoints(attraction,user)
+			);
 		}
 		return new FiveClosestAttractions(
 				String.format("Lat: %.02f Long: %.02f", visitedLocation.location.latitude, visitedLocation.location.longitude),
