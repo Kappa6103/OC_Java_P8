@@ -120,7 +120,7 @@ public class TourGuideService {
 			Attraction attraction = entry.getValue();
 			attractionDetails[i] = new AttractionDetails(
 					attraction.attractionName,
-					String.format("Lat: %.02f Long: %.02f", attraction.latitude, attraction.longitude),
+					String.format("Lat: %f Long: %f", attraction.latitude, attraction.longitude),
 					String.format("%.02f", entry.getKey()),
 					rewardsService.getRewardPoints(attraction,user)
 			);
