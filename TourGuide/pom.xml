@@ -17,14 +17,7 @@
 		<java.version>17</java.version>
 	</properties>
 	<dependencies>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-actuator</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-validation</artifactId>
-		</dependency>
+
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
@@ -34,11 +27,6 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
-		</dependency>
-		
-		<dependency>
-			<groupId>org.apache.commons</groupId>
-			<artifactId>commons-lang3</artifactId>
 		</dependency>
 
 		<dependency>
@@ -53,7 +41,6 @@
 			<version>1.0.0</version>
 			<scope>system</scope>
 			<systemPath>${project.basedir}/libs/gpsUtil.jar</systemPath>
-
 		</dependency>
 
 		<dependency>
@@ -62,8 +49,7 @@
 			<version>1.0.0</version>
 			<scope>system</scope>
 			<systemPath>${project.basedir}/libs/TripPricer.jar</systemPath>
-
-	</dependency>
+		</dependency>
 
 		<dependency>
 			<groupId>local.libs</groupId>
